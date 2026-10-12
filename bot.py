@@ -1,50 +1,57 @@
 import os
 import time
-import yfinance as yf
+from flask import Flask
 import pandas as pd
-from dotenv import load_dotenv
+import yfinance as yf
 
-# Load risk limits from .env configuration
-load_dotenv()
-MAX_DAILY_LOSS_PCT = float(os.getenv("MAX_DAILY_LOSS_PCT", 0.03))
-MAX_POSITION_SIZE_PCT = float(os.getenv("MAX_POSITION_SIZE_PCT", 0.10))
+app = Flask(__name__)
 
-SYMBOL = "BTC-USD"  # رمز البيتكوين مقابل الدولار
 
-print(f"=== Iron General Trading Bot Initialized ===")
-print(f"Target Asset: {SYMBOL}")
-print(f"Risk Limits -> Max Daily Loss: {MAX_DAILY_LOSS_PCT * 100}% | Max Position: {MAX_POSITION_SIZE_PCT * 100}%")
-print("Status: Fetching Live Market Data...\n")
+@app.route("/")
+def home():
+  return "Iron General Bot is running 24/7!"
 
-def check_market_signals():
-    # Fetch latest minute data from Yahoo Finance
-    data = yf.download(tickers=SYMBOL, period="1d", interval="1m", progress=False)
-    
-    if data.empty:
-        print("[WARNING] Could not fetch market data. Retrying...")
-        return
 
-    # Calculate EMA 9 and EMA 21
-    data['EMA9'] = data['Close'].ewm(span=9, adjust=False).mean()
-    data['EMA21'] = data['Close'].ewm(span=21, adjust=False).mean()
+def run_bot():
+  print("[INIT] Iron General BTC-USD Trading Bot Started...")
+  while True:
+    try:
+      data = yf.download(
+          "BTC-USD", period="5d", interval="1h", progress=False
+      )
+      if not data.empty:
+        close_prices = (
+            data["Close"].iloc[:, 0]
+            if isinstance(data["Close"], pd.DataFrame)
+            else data["Close"]
+        )
+        ema9 = close_prices.ewm(span=9, adjust=False).mean().iloc[-1]
+        ema21 = close_prices.ewm(span=21, adjust=False).mean().iloc[-1]
+        current_price = close_prices.iloc[-1]
 
-    latest_price = data['Close'].iloc[-1].item()
-    ema9 = data['EMA9'].iloc[-1].item()
-    ema21 = data['EMA21'].iloc[-1].item()
+        print(
+            f"[LIVE MARKET DATA] BTC-USD Price: ${current_price:.2f} | EMA9:"
+            f" ${ema9:.2f} | EMA21: ${ema21:.2f}"
+        )
 
-    print(f"[LIVE MARKET DATA] {SYMBOL} Price: ${latest_price:.2f} | EMA9: ${ema9:.2f} | EMA21: ${ema21:.2f}")
+        if ema9 > ema21:
+          print("-> [SIGNAL] BULLISH (EMA 9 > EMA 21) - Potential BUY")
+        else:
+          print("-> [SIGNAL] BEARISH (EMA 9 < EMA 21) - Potential SELL")
 
-    # Signal Logic
-    if ema9 > ema21:
-        print(" -> [SIGNAL] BULLISH (EMA 9 > EMA 21) - Potential BUY")
-    elif ema9 < ema21:
-        print(" -> [SIGNAL] BEARISH (EMA 9 < EMA 21) - Potential SELL")
-    else:
-        print(" -> [SIGNAL] NEUTRAL")
+      time.sleep(60)
+    except Exception as e:
+      print(f"[ERROR] {e}")
+      time.sleep(30)
 
-try:
-    while True:
-        check_market_signals()
-        time.sleep(10)  # Check every 10 seconds
-except KeyboardInterrupt:
-    print("\n[INFO] Bot stopped safely by user.")
+
+if __name__ == "__main__":
+  import threading
+
+  t = threading.Thread(target=run_bot)
+  t.daemon = True
+  t.start()
+
+  port = int(os.environ.get("PORT", 5000))
+  app.run(host="0.0.0.0", port=port)
+
