@@ -7,7 +7,7 @@ import yfinance as yf
 
 app = Flask(__name__)
 
-TELEGRAM_TOKEN = "8347396776:AAHg4Az3FFAcJctx0H48zFfVA5vwP6g41PA"
+TELEGRAM_TOKEN = "8347396776:AAHg4Az3FFAcJctX0H48zFfVA5vwP6g41PA"
 TELEGRAM_CHAT_ID = "713758884"
 
 def send_telegram_message(message):
