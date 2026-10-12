@@ -91,7 +91,7 @@ def run_bot():
                     current_rsi = rsi_series.iloc[-1] if not rsi_series.empty else 50
                     current_price = close_prices.iloc[-1]
 
-                    print(f"[{symbol}] Price: ${current_price:.2f} | EMA9: ${ema9:.2f} \vert{} EMA21:${ema21:.2f} | RSI: {current_rsi:.2f}", flush=True)
+                    print(symbol, current_price, ema9, ema21, current_rsi, flush=True)
 
                     current_signal = None
                     if ema9 > ema21 and current_rsi < 70:
