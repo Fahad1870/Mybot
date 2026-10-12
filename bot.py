@@ -18,7 +18,8 @@ def send_telegram_message(message):
             "text": message
         }
         try:
-            requests.post(url, json=payload, timeout=5)
+            response = requests.post(url, json=payload, timeout=5)
+            print(f"[TELEGRAM RESPONSE] {response.status_code} - {response.text}")
         except Exception as e:
             print(f"[TELEGRAM ERROR] {e}")
 
