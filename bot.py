@@ -19,16 +19,16 @@ def send_telegram_message(message):
         }
         try:
             response = requests.post(url, json=payload, timeout=5)
-            print(f"[TELEGRAM RESPONSE] {response.status_code} - {response.text}")
+            print(f"[TELEGRAM RESPONSE] {response.status_code} - {response.text}", flush=True)
         except Exception as e:
-            print(f"[TELEGRAM ERROR] {e}")
+            print(f"[TELEGRAM ERROR] {e}", flush=True)
 
 @app.route("/")
 def home():
     return "Iron General Bot with Telegram is running 24/7!"
 
 def run_bot():
-    print("[INIT] Iron General BTC-USD Trading Bot Started...")
+    print("[INIT] Iron General BTC-USD Trading Bot Started...", flush=True)
     send_telegram_message("🚀 [Iron General] Bot started running on Render 24/7!")
     
     last_signal = None
@@ -42,7 +42,7 @@ def run_bot():
                 ema21 = close_prices.ewm(span=21, adjust=False).mean().iloc[-1]
                 current_price = close_prices.iloc[-1]
 
-                print(f"[LIVE MARKET DATA] BTC-USD Price: ${current_price:.2f} | EMA9: ${ema9:.2f} | EMA21: ${ema21:.2f}")
+                print(f"[LIVE MARKET DATA] BTC-USD Price: ${current_price:.2f} | EMA9: ${ema9:.2f} | EMA21: ${ema21:.2f}", flush=True)
 
                 current_signal = "BUY" if ema9 > ema21 else "SELL"
 
@@ -57,7 +57,7 @@ def run_bot():
 
             time.sleep(60)
         except Exception as e:
-            print(f"[ERROR] {e}")
+            print(f"[ERROR] {e}", flush=True)
             time.sleep(30)
 
 if __name__ == "__main__":
